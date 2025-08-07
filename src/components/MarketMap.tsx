@@ -67,23 +67,23 @@ export default function MarketMap({ companies }: MarketMapProps) {
                   {category}
                 </h2>
                 
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
+                <div className="space-y-1">
                   {companiesInCategory.map((company, index) => (
                     <div
                       key={`${company.name}-${index}`}
-                      className="bg-white rounded-lg p-3 hover:shadow-md transition-shadow cursor-pointer border border-gray-200 hover:border-gray-300 flex flex-col items-center text-center"
+                      className="flex items-center gap-2 hover:bg-white/50 rounded px-2 py-1 cursor-pointer transition-colors"
                       onClick={() => window.open(company.website, '_blank')}
                     >
                       <img
                         src={getFaviconUrl(company.website || '')}
                         alt={`${company.name} favicon`}
-                        className="w-8 h-8 mb-2 rounded"
+                        className="w-4 h-4 rounded flex-shrink-0"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
-                          target.src = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23e5e7eb'/><text x='16' y='20' text-anchor='middle' fill='%236b7280' font-size='12' font-family='Arial'>${company.name.charAt(0).toUpperCase()}</text></svg>`;
+                          target.src = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'><rect width='16' height='16' fill='%23e5e7eb'/><text x='8' y='11' text-anchor='middle' fill='%236b7280' font-size='8' font-family='Arial'>${company.name.charAt(0).toUpperCase()}</text></svg>`;
                         }}
                       />
-                      <span className="text-xs text-gray-700 font-medium leading-tight">
+                      <span className="text-sm text-gray-700 leading-tight">
                         {company.name}
                       </span>
                     </div>
