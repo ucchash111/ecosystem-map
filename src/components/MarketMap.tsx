@@ -68,7 +68,9 @@ export default function MarketMap({ companies }: MarketMapProps) {
                 </h2>
                 
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 p-2">
-                  {companiesInCategory.map((company, index) => (
+                  {companiesInCategory
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .map((company, index) => (
                     <div
                       key={`${company.name}-${index}`}
                       className="bg-white rounded-lg p-3 hover:shadow-lg transition-all duration-200 cursor-pointer border border-gray-200 hover:border-gray-300 flex flex-col items-center text-center group"
