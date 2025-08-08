@@ -47,8 +47,8 @@ export default function MarketMap({ companies }: MarketMapProps) {
           </div>
         </div>
 
-        {/* Categories Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* Categories Masonry Grid */}
+        <div className="columns-1 md:columns-2 lg:columns-3 gap-6">
           {categories.map((category) => {
             const companiesInCategory = companiesByCategory[category];
             const categoryColors = {
@@ -62,7 +62,7 @@ export default function MarketMap({ companies }: MarketMapProps) {
             const colorClass = categoryColors[category as keyof typeof categoryColors] || 'bg-gray-100 border-gray-300';
 
             return (
-              <div key={category} className={`${colorClass} border-2 rounded-lg p-6`}>
+              <div key={category} className={`${colorClass} border-2 rounded-lg p-6 mb-6 break-inside-avoid`}>
                 <h2 className="font-bold text-lg text-gray-800 mb-4 uppercase tracking-wide">
                   {category}
                 </h2>
