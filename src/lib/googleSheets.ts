@@ -8,6 +8,9 @@ export interface EcosystemData {
   tier?: string;
   investments?: string;
   logo?: string;
+  description?: string;
+  focus?: string;
+  email?: string;
 }
 
 export class GoogleSheetsService {
