@@ -145,7 +145,7 @@ export default function SitePreviewMap({ companies }: SitePreviewMapProps) {
                         className="w-8 h-8 rounded-sm flex-shrink-0"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
-                          target.src = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23e5e7eb'/><text x='16' y='20' text-anchor='middle' fill='%236b7280' font-size='12' font-family='Arial'>${company.name.charAt(0).toUpperCase()}</text></svg>`;
+                          target.src = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23e5e7eb'/><text x='16' y='20' text-anchor='middle' fill='%236b7280' font-size='12' font-family='General Sans, Arial, sans-serif' font-weight='700'>${company.name.charAt(0).toUpperCase()}</text></svg>`;
                         }}
                       />
                       <div className="flex-1 min-w-0">

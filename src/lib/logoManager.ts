@@ -68,7 +68,7 @@ export class LogoManager {
     return `data:image/svg+xml,${encodeURIComponent(`
       <svg width="80" height="80" xmlns="http://www.w3.org/2000/svg">
         <rect width="80" height="80" fill="${color}" rx="8"/>
-        <text x="40" y="50" font-family="Arial, sans-serif" font-size="24" font-weight="bold" 
+        <text x="40" y="50" font-family="General Sans, Arial, sans-serif" font-size="24" font-weight="700"
               fill="white" text-anchor="middle" dominant-baseline="central">${initials}</text>
       </svg>
     `)}`;

@@ -84,7 +84,7 @@ export default function MarketMap({ companies }: MarketMapProps) {
                           className="w-8 h-8 rounded"
                           onError={(e) => {
                             const target = e.target as HTMLImageElement;
-                            target.src = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23e5e7eb' rx='4'/><text x='16' y='20' text-anchor='middle' fill='%236b7280' font-size='12' font-family='Arial, sans-serif' font-weight='bold'>${company.name.charAt(0).toUpperCase()}</text></svg>`;
+                            target.src = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23e5e7eb' rx='4'/><text x='16' y='20' text-anchor='middle' fill='%236b7280' font-size='12' font-family='General Sans, Arial, sans-serif' font-weight='700'>${company.name.charAt(0).toUpperCase()}</text></svg>`;
                           }}
                         />
                       </div>
