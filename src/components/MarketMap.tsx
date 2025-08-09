@@ -8,12 +8,13 @@ interface MarketMapProps {
 }
 
 function getFaviconUrl(website: string): string {
-  try {
-    const url = new URL(website.startsWith('http') ? website : `https://${website}`);
-    return `https://www.google.com/s2/favicons?domain=${url.hostname}&sz=32`;
-  } catch {
-    return '/favicon.ico';
-  }
+  const input = (website || '').trim();
+  if (!input) return '/favicon.ico';
+  // Extract a hostname-like token to avoid SSR/CSR parser differences
+  const match = input.match(/([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
+  if (!match) return '/favicon.ico';
+  const hostname = match[1].replace(/^https?:\/\//, '').replace(/^www\./, '').toLowerCase();
+  return `https://www.google.com/s2/favicons?domain=${hostname}&sz=32`;
 }
 
 export default function MarketMap({ companies }: MarketMapProps) {
