@@ -17,9 +17,22 @@ function getFaviconUrl(website: string): string {
 }
 
 export default function MarketMap({ companies }: MarketMapProps) {
-  // Group companies by category
+  // Helpers
+  const isTierOne = (tier?: string) => {
+    const value = (tier || '').trim().toLowerCase();
+    return value === '1' || value === 'tier 1' || value === 'tier1' || value === 't1';
+  };
+
+  const isExcludedCategory = (category?: string) => {
+    const value = (category || '').trim().toLowerCase();
+    return value === 'incubators & accelerators' || value === 'incubators and accelerators';
+  };
+
+  // Group companies by category (Tier 1 only, exclude I&A, must have website)
   const companiesByCategory = companies
-    .filter(company => company.website) // Only show companies with websites
+    .filter(company => company.website)
+    .filter(company => isTierOne(company.tier))
+    .filter(company => !isExcludedCategory(company.category))
     .reduce((acc, company) => {
       const category = company.category || 'Other';
       if (!acc[category]) acc[category] = [];
@@ -69,6 +82,7 @@ export default function MarketMap({ companies }: MarketMapProps) {
                 
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 p-2">
                   {companiesInCategory
+                    .slice()
                     .sort((a, b) => a.name.localeCompare(b.name))
                     .map((company, index) => (
                     <div
