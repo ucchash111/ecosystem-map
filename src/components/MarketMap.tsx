@@ -7,14 +7,23 @@ interface MarketMapProps {
   companies: EcosystemData[];
 }
 
-function getFaviconUrl(website: string): string {
-  const input = (website || '').trim();
-  if (!input) return '/favicon.ico';
-  // Extract a hostname-like token to avoid SSR/CSR parser differences
-  const match = input.match(/([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
-  if (!match) return '/favicon.ico';
-  const hostname = match[1].replace(/^https?:\/\//, '').replace(/^www\./, '').toLowerCase();
-  return `https://www.google.com/s2/favicons?domain=${hostname}&sz=32`;
+function getCompanyLogoUrl(company: EcosystemData): string {
+  // Use logo_url from sheet if available
+  if (company.logo_url && company.logo_url.trim()) {
+    return company.logo_url.trim();
+  }
+  
+  // Fallback to favicon if website exists
+  const website = (company.website || '').trim();
+  if (website) {
+    const match = website.match(/([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
+    if (match) {
+      const hostname = match[1].replace(/^https?:\/\//, '').replace(/^www\./, '').toLowerCase();
+      return `https://www.google.com/s2/favicons?domain=${hostname}&sz=32`;
+    }
+  }
+  
+  return '/favicon.ico';
 }
 
 export default function MarketMap({ companies }: MarketMapProps) {
@@ -92,11 +101,12 @@ export default function MarketMap({ companies }: MarketMapProps) {
                       onClick={() => window.open(company.website, '_blank')}
                       title={company.name}
                     >
-                      <div className="w-12 h-12 mb-2 flex items-center justify-center bg-gray-50 rounded-lg group-hover:bg-gray-100 transition-colors">
+                      <div className="w-12 h-12 mb-2 flex items-center justify-center bg-gray-100 rounded-lg group-hover:bg-gray-200 transition-colors">
                         <img
-                          src={getFaviconUrl(company.website || '')}
-                          alt={`${company.name} favicon`}
-                          className="w-8 h-8 rounded"
+                          src={getCompanyLogoUrl(company)}
+                          alt={`${company.name} logo`}
+                          className="w-8 h-8 rounded object-contain"
+                          loading="lazy"
                           onError={(e) => {
                             const target = e.target as HTMLImageElement;
                             target.src = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23e5e7eb' rx='4'/><text x='16' y='20' text-anchor='middle' fill='%236b7280' font-size='12' font-family='General Sans, Arial, sans-serif' font-weight='700'>${company.name.charAt(0).toUpperCase()}</text></svg>`;

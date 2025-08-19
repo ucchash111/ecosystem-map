@@ -22,6 +22,8 @@ export interface EcosystemPlayer {
   website?: string;
   email?: string;
   focus?: string;
+  logo_url?: string;
+  tier?: string;
 }
 
 export const CATEGORY_CONFIG: Record<EcosystemCategory, {

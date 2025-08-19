@@ -7,7 +7,7 @@ export interface EcosystemData {
   type?: string;
   tier?: string;
   investments?: string;
-  logo?: string;
+  logo_url?: string;
   description?: string;
   focus?: string;
   email?: string;
@@ -52,7 +52,10 @@ export class GoogleSheetsService {
           type: item.type || '',
           tier: item.tier || '',
           investments: item.investments || '',
-          logo: item.logo || '',
+          logo_url: item.logo_url || '',
+          description: item.description || '',
+          focus: item.focus || '',
+          email: item.email || '',
         };
       }).filter(item => item.name.trim() !== '');
     } catch (error) {

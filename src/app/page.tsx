@@ -1,9 +1,8 @@
 import MarketMap from '@/components/MarketMap';
 import { GoogleSheetsService } from '@/lib/googleSheets';
 
-// Force dynamic rendering to get fresh data
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+// Cache for 5 minutes to improve performance
+export const revalidate = 300;
 
 async function getSheetData() {
   try {

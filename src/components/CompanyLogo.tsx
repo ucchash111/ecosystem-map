@@ -1,88 +1,65 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Image from 'next/image';
-import { LogoManager } from '@/lib/logoManager';
 
 interface CompanyLogoProps {
-  websiteUrl: string;
+  logoUrl?: string;
   companyName: string;
   size?: number;
   className?: string;
 }
 
 export default function CompanyLogo({ 
-  websiteUrl, 
+  logoUrl, 
   companyName, 
   size = 60, 
   className = '' 
 }: CompanyLogoProps) {
-  const [logoUrl, setLogoUrl] = useState<string>('');
-  const [hasLogo, setHasLogo] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
-  useEffect(() => {
-    const setupLogo = async () => {
-      if (!websiteUrl) {
-        const placeholder = LogoManager.generatePlaceholder(companyName);
-        setLogoUrl(placeholder);
-        setHasLogo(false);
-        return;
-      }
-      
-      // Try to get the logo URL
-      const logoPath = LogoManager.getLogoUrl(websiteUrl, companyName);
-      
-      // Check if logo exists by trying to load it
-      const logoExists = await LogoManager.logoExists(websiteUrl);
-      
-      if (logoExists) {
-        setLogoUrl(logoPath);
-        setHasLogo(true);
-      } else {
-        // Use placeholder and queue download
-        const placeholder = LogoManager.generatePlaceholder(companyName);
-        setLogoUrl(placeholder);
-        setHasLogo(false);
-        
-        // Queue download
-        LogoManager.queueLogoDownload(websiteUrl);
-      }
-    };
+  // Generate placeholder with company initials
+  const generatePlaceholder = (name: string) => {
+    const initials = name
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase())
+      .join('')
+      .substring(0, 2);
     
-    setupLogo();
-  }, [websiteUrl, companyName]);
-
-  if (hasLogo) {
+    const colors = ['#2563eb', '#059669', '#7c3aed', '#dc2626', '#ea580c'];
+    const colorIndex = name.length % colors.length;
+    const backgroundColor = colors[colorIndex];
+    
     return (
-      <div className={`relative ${className}`} style={{ width: size, height: size }}>
-        <Image
-          src={logoUrl}
-          alt={`${companyName} logo`}
-          fill
-          className="object-contain rounded"
-          sizes={`${size}px`}
-          onError={() => {
-            // If logo fails to load, fall back to placeholder
-            const placeholder = LogoManager.generatePlaceholder(companyName);
-            setLogoUrl(placeholder);
-            setHasLogo(false);
-          }}
-        />
+      <div 
+        className={`flex items-center justify-center rounded text-white font-semibold ${className}`}
+        style={{ 
+          width: size, 
+          height: size,
+          backgroundColor,
+          fontSize: size * 0.4
+        }}
+      >
+        {initials}
       </div>
     );
+  };
+
+  // If no logo URL or image failed to load, show placeholder
+  if (!logoUrl || imageError) {
+    return generatePlaceholder(companyName);
   }
 
-  // Show placeholder with initials
   return (
-    <div 
-      className={`flex items-center justify-center rounded ${className}`}
-      style={{ 
-        width: size, 
-        height: size,
-        background: `url("${logoUrl}")`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center'
-      }}
-    />
+    <div className={`relative ${className}`} style={{ width: size, height: size }}>
+      <Image
+        src={logoUrl}
+        alt={`${companyName} logo`}
+        fill
+        className="object-contain rounded"
+        sizes={`${size}px`}
+        onError={() => setImageError(true)}
+      />
+    </div>
   );
 }
