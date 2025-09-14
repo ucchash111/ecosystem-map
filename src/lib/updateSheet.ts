@@ -1,5 +1,4 @@
 import { google } from 'googleapis';
-import { fetchLogoFromWebsite, generateLogoPlaceholder } from './logoFetcher';
 
 export class SheetUpdater {
   private sheets;
@@ -78,15 +77,9 @@ export class SheetUpdater {
         const website = row[websiteIndex];
         let logo = row[logoIndex];
 
-        // If logo is empty, try to fetch it
-        if (!logo && website) {
-          console.log(`Fetching logo for ${name}...`);
-          logo = await fetchLogoFromWebsite(website);
-          
-          // If still no logo, generate placeholder
-          if (!logo && name) {
-            logo = generateLogoPlaceholder(name);
-          }
+        // If logo is empty, leave it empty (logo fetching removed)
+        if (!logo) {
+          logo = '';
         }
 
         // Ensure row has enough columns
