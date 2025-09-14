@@ -4,7 +4,7 @@
   "framework": "nextjs",
   "installCommand": "npm install",
   "env": {
-    "GOOGLE_SHEETS_API_KEY": "@google_sheets_api_key",
-    "GOOGLE_SHEET_ID": "@google_sheet_id"
+    "GOOGLE_SHEETS_API_KEY": "AIzaSyDd8d_CSaltt-8Nbt1TTUUdKXE6IlYG41E",
+    "GOOGLE_SHEET_ID": "1lJNQQtRTlRUEpki9D0mZJhplM9BEvbNSF5LVXREir3c"
   }
 }
