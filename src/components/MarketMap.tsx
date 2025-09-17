@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { EcosystemData } from '@/lib/googleSheets';
 
 interface MarketMapProps {
@@ -139,6 +140,10 @@ export default function MarketMap({ companies }: MarketMapProps) {
   };
 
   const filteredCompanies = getFilteredCompanies();
+  const uncategorizedCount = filteredCompanies.filter(c => !c.category || !c.category.trim()).length;
+  const totalByCategory = Object.fromEntries(
+    Object.entries(companiesByCategory).map(([cat, list]) => [cat, list.length])
+  );
 
   return (
     <div className="min-h-screen bg-slate-50" style={{ fontFamily: '"General Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
@@ -168,6 +173,24 @@ export default function MarketMap({ companies }: MarketMapProps) {
               T1
             </button>
           </div>
+        </div>
+
+        {/* Data sanity chips */}
+        <div className="flex flex-wrap items-center gap-1 mb-2">
+          {categories.map((cat) => (
+            <span
+              key={`chip-${cat}`}
+              className="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200"
+              title={cat}
+            >
+              {cat.replace(' & ', ' &\u00A0')}: {totalByCategory[cat]}
+            </span>
+          ))}
+          {uncategorizedCount > 0 && (
+            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-yellow-100 text-yellow-800 border border-yellow-200">
+              Uncategorized: {uncategorizedCount}
+            </span>
+          )}
         </div>
 
         {/* Beautiful Integrated Flow Layout */}
@@ -284,13 +307,15 @@ export default function MarketMap({ companies }: MarketMapProps) {
                         >
                           <div className="flex flex-col items-center text-center">
                             <div className="w-4 h-4 mb-0.5 flex items-center justify-center">
-                              <img
+                              <Image
                                 src={getCompanyLogoUrl(company)}
                                 alt={`${company.name} logo`}
+                                width={14}
+                                height={14}
+                                unoptimized
                                 className="w-3.5 h-3.5 object-contain drop-shadow-sm"
-                                loading="lazy"
                                 onError={(e) => {
-                                  const target = e.target as HTMLImageElement;
+                                  const target = e.currentTarget as HTMLImageElement;
                                   target.src = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14'><rect width='14' height='14' fill='%23e2e8f0' rx='2'/><text x='7' y='10' text-anchor='middle' fill='%23475569' font-size='6' font-family='General Sans, Arial, sans-serif' font-weight='700'>${company.name.charAt(0).toUpperCase()}</text></svg>`;
                                 }}
                               />
