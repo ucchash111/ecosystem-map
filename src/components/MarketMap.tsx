@@ -8,22 +8,31 @@ interface MarketMapProps {
   companies: EcosystemData[];
 }
 
+function getHostFromWebsite(website?: string): string | null {
+  const site = (website || '').trim();
+  if (!site) return null;
+  const match = site.match(/([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
+  if (match) {
+    const hostname = match[1].replace(/^https?:\/\//, '').replace(/^www\./, '').toLowerCase();
+    return hostname;
+  }
+  return null;
+}
+
 function getCompanyLogoUrl(company: EcosystemData): string {
-  // Use logo_url from sheet if available
+  const hostname = getHostFromWebsite(company.website || undefined);
+  // Try local cached logo first if we can infer hostname
+  if (hostname) {
+    return `/logos/${hostname}.png`;
+  }
+  // Else use sheet-provided logo if any
   if (company.logo_url && company.logo_url.trim()) {
     return company.logo_url.trim();
   }
-  
-  // Fallback to favicon if website exists
-  const website = (company.website || '').trim();
-  if (website) {
-    const match = website.match(/([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
-    if (match) {
-      const hostname = match[1].replace(/^https?:\/\//, '').replace(/^www\./, '').toLowerCase();
-      return `https://www.google.com/s2/favicons?domain=${hostname}&sz=32`;
-    }
+  // Else fallback to site favicon
+  if (hostname) {
+    return `https://www.google.com/s2/favicons?domain=${hostname}&sz=32`;
   }
-  
   return '/favicon.ico';
 }
 
@@ -315,8 +324,25 @@ export default function MarketMap({ companies }: MarketMapProps) {
                                 unoptimized
                                 className="w-3.5 h-3.5 object-contain drop-shadow-sm"
                                 onError={(e) => {
-                                  const target = e.currentTarget as HTMLImageElement;
-                                  target.src = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14'><rect width='14' height='14' fill='%23e2e8f0' rx='2'/><text x='7' y='10' text-anchor='middle' fill='%23475569' font-size='6' font-family='General Sans, Arial, sans-serif' font-weight='700'>${company.name.charAt(0).toUpperCase()}</text></svg>`;
+                                  const img = e.currentTarget as HTMLImageElement & { dataset: { attempt?: string } };
+                                  const attempt = parseInt(img.dataset.attempt || '0', 10);
+                                  const hostname = getHostFromWebsite(company.website || undefined);
+                                  if (attempt === 0) {
+                                    // Fallback 1: sheet-provided logo URL
+                                    if (company.logo_url && company.logo_url.trim()) {
+                                      img.dataset.attempt = '1';
+                                      img.src = company.logo_url.trim();
+                                      return;
+                                    }
+                                  }
+                                  if (attempt <= 1 && hostname) {
+                                    // Fallback 2: Google favicon
+                                    img.dataset.attempt = '2';
+                                    img.src = `https://www.google.com/s2/favicons?domain=${hostname}&sz=32`;
+                                    return;
+                                  }
+                                  // Final fallback: inline placeholder
+                                  img.src = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14'><rect width='14' height='14' fill='%23e2e8f0' rx='2'/><text x='7' y='10' text-anchor='middle' fill='%23475569' font-size='6' font-family='General Sans, Arial, sans-serif' font-weight='700'>${company.name.charAt(0).toUpperCase()}</text></svg>`;
                                 }}
                               />
                             </div>

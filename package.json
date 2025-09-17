@@ -6,7 +6,8 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "logos:cache": "node --experimental-modules --no-warnings ./scripts/cache-logos.js"
   },
   "dependencies": {
     "googleapis": "^155.0.0",
