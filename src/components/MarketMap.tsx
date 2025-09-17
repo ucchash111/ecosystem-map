@@ -21,18 +21,12 @@ function getHostFromWebsite(website?: string): string | null {
 
 function getCompanyLogoUrl(company: EcosystemData): string {
   const hostname = getHostFromWebsite(company.website || undefined);
-  // Try local cached logo first if we can infer hostname
-  if (hostname) {
-    return `/logos/${hostname}.png`;
-  }
-  // Else use sheet-provided logo if any
-  if (company.logo_url && company.logo_url.trim()) {
-    return company.logo_url.trim();
-  }
-  // Else fallback to site favicon
-  if (hostname) {
-    return `https://www.google.com/s2/favicons?domain=${hostname}&sz=32`;
-  }
+  // Canonical local path: always .png
+  if (hostname) return `/logos/${hostname}.png`;
+  // Fallback to sheet-provided
+  if (company.logo_url && company.logo_url.trim()) return company.logo_url.trim();
+  // Fallback to favicon
+  if (hostname) return `https://www.google.com/s2/favicons?domain=${hostname}&sz=32`;
   return '/favicon.ico';
 }
 
@@ -327,35 +321,27 @@ export default function MarketMap({ companies }: MarketMapProps) {
                                   const img = e.currentTarget as HTMLImageElement & { dataset: { attempt?: string } };
                                   const attempt = parseInt(img.dataset.attempt || '0', 10);
                                   const hostname = getHostFromWebsite(company.website || undefined);
-                                  const localBases = hostname ? [
-                                    `/logos/${hostname}.png`,
-                                    `/logos/${hostname}.svg`,
-                                    `/logos/${hostname}.jpg`,
-                                    `/logos/${hostname}.webp`,
-                                    `/logos/${hostname}.gif`,
-                                  ] : [];
-
-                                  // Try a few local extensions first
-                                  if (attempt < localBases.length) {
-                                    img.dataset.attempt = String(attempt + 1);
-                                    img.src = localBases[attempt];
+                                  // Try canonical PNG only
+                                  if (attempt === 0 && hostname) {
+                                    img.dataset.attempt = '1';
+                                    img.src = `/logos/${hostname}.png`;
                                     return;
                                   }
 
                                   // Next: sheet-provided logo URL
-                                  if (attempt === localBases.length) {
+                                  if (attempt === 1) {
                                     if (company.logo_url && company.logo_url.trim()) {
-                                      img.dataset.attempt = String(attempt + 1);
+                                      img.dataset.attempt = '2';
                                       img.src = company.logo_url.trim();
                                       return;
                                     } else {
-                                      img.dataset.attempt = String(attempt + 1);
+                                      img.dataset.attempt = '2';
                                     }
                                   }
 
                                   // Next: Google favicon
-                                  if (hostname && attempt <= localBases.length + 1) {
-                                    img.dataset.attempt = String(localBases.length + 2);
+                                  if (hostname && attempt <= 2) {
+                                    img.dataset.attempt = '3';
                                     img.src = `https://www.google.com/s2/favicons?domain=${hostname}&sz=32`;
                                     return;
                                   }

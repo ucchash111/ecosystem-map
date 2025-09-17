@@ -2,6 +2,7 @@
 const fs = require("fs/promises");
 const path = require("path");
 const { google } = require("googleapis");
+const sharp = require("sharp");
 
 async function loadEnvLocal() {
   try {
@@ -138,7 +139,11 @@ async function saveFavicon(hostname, logosDir) {
   const buf = Buffer.from(await res.arrayBuffer());
   if (buf.length === 0) throw new Error("empty favicon");
   const target = path.join(logosDir, `${hostname}.png`);
-  await fs.writeFile(target, buf);
+  try {
+    await sharp(buf).png({ quality: 90 }).toFile(target);
+  } catch {
+    await fs.writeFile(target, buf);
+  }
   return target;
 }
 
@@ -192,11 +197,12 @@ async function saveFromLogoUrl(logoUrl, base, logosDir) {
   if (!res.ok) throw new Error(`fetch ${res.status}`);
   const buf = Buffer.from(await res.arrayBuffer());
   if (buf.length === 0) throw new Error("empty");
-  const ct = res.headers.get("content-type");
-  let ext = extFromContentType(ct) || extFromUrl(normalized) || "png";
-  if (ext === "jpeg") ext = "jpg";
-  const target = path.join(logosDir, `${base}.${ext}`);
-  await fs.writeFile(target, buf);
+  const target = path.join(logosDir, `${base}.png`);
+  try {
+    await sharp(buf).png({ quality: 90 }).toFile(target);
+  } catch {
+    await fs.writeFile(target, buf);
+  }
   return target;
 }
 
