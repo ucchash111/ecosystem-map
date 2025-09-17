@@ -2,6 +2,7 @@
 /missing-logos.csv
 /duplicate-logo-bases.csv
 /needs-sourcing.csv
+/perfected.json
 
 # Logo reconciliation archive (keep local, do not commit)
 /public/logos/_archive/
