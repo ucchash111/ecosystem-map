@@ -80,6 +80,38 @@ export class GoogleSheetsService {
         else if (map[underscored]) headerToCanonical[h] = map[underscored];
       });
 
+      const canonicalizeCategory = (raw: string | undefined): string => {
+        const v = (raw || '').toLowerCase().trim();
+        if (!v) return '';
+        // Venture Capital
+        if (/(^|\b)(vc|venture|venture\s*capital|fund)(\b|$)/i.test(v)) return 'Venture Capital';
+        // Impact Investor
+        if (/impact|esg|sustainab|csr/.test(v)) return 'Impact Investor';
+        // Private Equity
+        if (/private\s*equity|pe\b/.test(v)) return 'Private Equity';
+        // Incubators & Accelerators
+        if (/incubat|accelerat|program|cohort|bootcamp/.test(v)) return 'Incubators & Accelerators';
+        // Angel Syndicate & Network
+        if (/angel|syndicate|network/.test(v)) return 'Angel Syndicate & Network';
+        // Ecosystem Support
+        if (/support|service|advis|consult|law|audit|account|ops|enable|tool|platform/.test(v)) return 'Ecosystem Support';
+        // Media and Information Platforms
+        if (/media|news|insight|research|database|info|intelligence|magazine|press/.test(v)) return 'Media and Information Platforms';
+        // University Programs
+        if (/university|college|school|campus|lab|center|centre|student|faculty/.test(v)) return 'University Programs';
+        // Government
+        if (/gov|ministry|bureau|agency|public|municipal|state|national/.test(v)) return 'Government';
+        // Corporate Venture
+        if (/corporate|cvc|conglomerate|group|holdings?/.test(v)) return 'Corporate Venture';
+        // DFIs, FIs, & DOs
+        if (/(\bdfi\b|\bfi\b|development\s*finance|foundation|ngo|non-?profit|international|multilateral|donor|fund|bank|foundation)/.test(v)) {
+          return 'DFIs, FIs, & DOs';
+        }
+        // Co-Working
+        if (/cowork|co-?working|shared\s*office|space/.test(v)) return 'Co-Working';
+        return '';
+      };
+
       return data.map((row: string[]) => {
         const record: Partial<EcosystemData> = {};
         headers.forEach((rawHeader, index) => {
@@ -99,11 +131,16 @@ export class GoogleSheetsService {
           }
         });
 
+        // Normalize category values to our canonical set
+        const canonicalCategory = canonicalizeCategory(
+          (record.category || record.type || '').toString()
+        );
+
         return {
           name: (record.name || '').trim(),
           website: record.website || '',
-          // If both category and type existed, category takes precedence (already mapped); fallback to empty
-          category: record.category || '',
+          // Prefer canonical mapping; if no match, keep original or empty
+          category: canonicalCategory || (record.category || '').trim(),
           type: record.type || '',
           tier: record.tier || '',
           investments: record.investments || '',

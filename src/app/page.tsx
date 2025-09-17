@@ -1,24 +1,49 @@
+"use client";
+
+import { useEffect, useState } from 'react';
 import MarketMap from '@/components/MarketMap';
-import { GoogleSheetsService } from '@/lib/googleSheets';
+import type { EcosystemData } from '@/lib/googleSheets';
 
-// Cache for 5 minutes to improve performance
-export const revalidate = 300;
+export default function Home() {
+  const [companies, setCompanies] = useState<EcosystemData[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
-async function getSheetData() {
-  try {
-    const sheetId = process.env.GOOGLE_SHEET_ID;
-    if (!sheetId) {
-      throw new Error('GOOGLE_SHEET_ID is not set');
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      try {
+        const res = await fetch('/api/sheet-data', { cache: 'no-store' });
+        if (!res.ok) throw new Error(`API ${res.status}`);
+        const data = await res.json();
+        if (!cancelled) setCompanies(data);
+      } catch {
+        if (!cancelled) setError('Failed to load data');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
     }
-    const service = new GoogleSheetsService();
-    return await service.getSheetData(sheetId);
-  } catch (error) {
-    console.error('Failed to fetch sheet data:', error);
-    return [];
-  }
-}
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
-export default async function Home() {
-  const data = await getSheetData();
-  return <MarketMap companies={data} />;
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-slate-500">
+        Loading…
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-red-600">
+        {error}
+      </div>
+    );
+  }
+
+  return <MarketMap companies={companies} />;
 }
