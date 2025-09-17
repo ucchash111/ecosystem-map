@@ -147,6 +147,26 @@ async function saveFavicon(hostname, logosDir) {
   return target;
 }
 
+// Save favicon content but write to a per-row base (unique) filename instead of hostname
+async function saveFaviconToBase(hostname, base, logosDir) {
+  const url = `https://www.google.com/s2/favicons?domain=${hostname}&sz=64`;
+  const res = await fetch(url, {
+    cache: "no-store",
+    headers: { "User-Agent": "Mozilla/5.0 (compatible; LogoCache/1.0)" },
+    redirect: "follow",
+  });
+  if (!res.ok) throw new Error(`fetch ${res.status}`);
+  const buf = Buffer.from(await res.arrayBuffer());
+  if (buf.length === 0) throw new Error("empty favicon");
+  const target = path.join(logosDir, `${base}.png`);
+  try {
+    await sharp(buf).png({ quality: 90 }).toFile(target);
+  } catch {
+    await fs.writeFile(target, buf);
+  }
+  return target;
+}
+
 function slugifyName(name) {
   return (
     String(name || "")
@@ -156,10 +176,22 @@ function slugifyName(name) {
   );
 }
 
-function deriveBase(row) {
-  const host = extractHostname(row.website) || extractHostname(row.logo_url);
-  if (host) return host;
-  return slugifyName(row.name);
+function makeShortHash(input) {
+  const s = String(input || "");
+  let hash = 5381;
+  for (let i = 0; i < s.length; i++) {
+    hash = ((hash << 5) + hash) ^ s.charCodeAt(i);
+    hash |= 0;
+  }
+  const hex = (hash >>> 0).toString(16);
+  return hex.padStart(8, "0").slice(-8);
+}
+
+function deriveRowKey(row) {
+  const slug = slugifyName(row.name);
+  const fingerprint = `${row.name}|${row.website}|${row.logo_url}`;
+  const short = makeShortHash(fingerprint);
+  return `${slug}-${short}`;
 }
 
 function extFromContentType(ct) {
@@ -226,6 +258,23 @@ function normalizeLogoUrl(url) {
   }
 }
 
+function isGenericHost(host) {
+  const h = String(host || "").toLowerCase();
+  if (h === "facebook.com") return true;
+  if (
+    h === "linkedin.com" ||
+    h.endsWith(".linkedin.com") ||
+    h === "media.licdn.com"
+  )
+    return true;
+  if (h.startsWith("scontent.")) return true;
+  if (h === "drive.google.com" || h.endsWith(".googleusercontent.com"))
+    return true;
+  if (h === "dropbox.com" || h.endsWith(".dropboxusercontent.com")) return true;
+  if (h.endsWith(".framer.ai")) return true;
+  return false;
+}
+
 async function main() {
   await loadEnvLocal();
   const { limit, force, logoOnly } = parseArgs(process.argv);
@@ -261,7 +310,7 @@ async function main() {
       const row = queue.shift();
       if (!row) break;
       processed += 1;
-      const base = deriveBase(row);
+      const base = deriveRowKey(row);
       // Skip if any of common extensions exist and not forcing
       if (!force) {
         const exts = ["png", "svg", "jpg", "webp", "gif"];
@@ -279,22 +328,37 @@ async function main() {
         }
       }
       try {
-        if (row.logo_url && String(row.logo_url).trim()) {
-          await saveFromLogoUrl(String(row.logo_url).trim(), base, logosDir);
-          saved += 1;
-          savedFromLogoUrl += 1;
-        } else if (!logoOnly) {
-          const hostForFavicon = extractHostname(row.website);
-          if (!hostForFavicon) {
-            skipped += 1;
-            skippedNoHost += 1;
+        const hasLogoUrl = row.logo_url && String(row.logo_url).trim();
+        if (hasLogoUrl) {
+          try {
+            await saveFromLogoUrl(String(row.logo_url).trim(), base, logosDir);
+            saved += 1;
+            savedFromLogoUrl += 1;
             continue;
+          } catch (_) {
+            // If logo fetch fails, we DO NOT use favicon. We write a placeholder instead.
           }
-          await saveFavicon(hostForFavicon, logosDir);
+        }
+
+        if (!logoOnly) {
+          // Generate placeholder PNG to guarantee 1:1 coverage (no favicon fallback)
+          const target = path.join(logosDir, `${base}.png`);
+          const buf = Buffer.from(
+            await sharp({
+              create: {
+                width: 64,
+                height: 64,
+                channels: 3,
+                background: "#e2e8f0",
+              },
+            })
+              .png()
+              .toBuffer()
+          );
+          await fs.writeFile(target, buf);
           saved += 1;
-          savedFromFavicon += 1;
         } else {
-          skipped += 1; // no logo_url in logo-only mode
+          skipped += 1; // logo-only mode and no usable logo_url
         }
       } catch (e) {
         errors += 1;

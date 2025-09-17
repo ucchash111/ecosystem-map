@@ -19,6 +19,21 @@ function getHostFromWebsite(website?: string): string | null {
   return null;
 }
 
+function slugifyName(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-+|-+$)/g, '') || 'logo';
+}
+
+function getBaseKey(company: EcosystemData): string {
+  const host = getHostFromWebsite(company.website || undefined);
+  // If host is a generic CDN/social host, prefer name slug to avoid collapsing
+  const generic = host ? /^(facebook\.com|.*linkedin\.com|media\.licdn\.com|scontent\.|drive\.google\.com|.*googleusercontent\.com|dropbox\.com|.*dropboxusercontent\.com|.*\.framer\.ai)$/i.test(host) : false;
+  if (!generic && host) return host;
+  return slugifyName(company.name || '');
+}
+
 function getCompanyLogoUrl(company: EcosystemData): string {
   const hostname = getHostFromWebsite(company.website || undefined);
   // Canonical local path: always .png
@@ -41,13 +56,22 @@ export default function MarketMap({ companies }: MarketMapProps) {
 
   // Filter companies based on current filters
   const getFilteredCompanies = () => {
-    let filtered = companies.filter(company => company.website);
+    let filtered = companies.filter(company => company.website || company.logo_url || company.name);
 
     if (showTierOneOnly) {
       filtered = filtered.filter(company => isTierOne(company.tier));
     }
 
-    return filtered;
+    // Dedupe by base key (hostname or name slug)
+    const seen = new Set<string>();
+    const unique: EcosystemData[] = [];
+    for (const c of filtered) {
+      const key = getBaseKey(c);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      unique.push(c);
+    }
+    return unique;
   };
 
   // Group companies by category

@@ -7,7 +7,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "logos:cache": "node --experimental-modules --no-warnings ./scripts/cache-logos.js"
+    "logos:cache": "node --experimental-modules --no-warnings ./scripts/cache-logos.js",
+    "logos:report": "node ./scripts/report-missing-logos.js",
+    "logos:reconcile": "node ./scripts/reconcile-logos.js",
+    "logos:needs": "node ./scripts/report-needs-sourcing.js",
+    "logos:restore-16": "node ./scripts/restore-specific-logos.js"
   },
   "dependencies": {
     "googleapis": "^155.0.0",
