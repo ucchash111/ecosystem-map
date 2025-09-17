@@ -26,6 +26,24 @@ function slugifyName(name: string): string {
     .replace(/(^-+|-+$)/g, '') || 'logo';
 }
 
+function makeShortHash(input: string): string {
+  const s = String(input || '');
+  let hash = 5381;
+  for (let i = 0; i < s.length; i++) {
+    hash = ((hash << 5) + hash) ^ s.charCodeAt(i);
+    hash |= 0;
+  }
+  const hex = (hash >>> 0).toString(16);
+  return hex.padStart(8, '0').slice(-8);
+}
+
+function deriveRowKey(company: EcosystemData): string {
+  const slug = slugifyName(company.name || '');
+  const fingerprint = `${company.name}|${company.website}|${company.logo_url}`;
+  const short = makeShortHash(fingerprint);
+  return `${slug}-${short}`;
+}
+
 function getBaseKey(company: EcosystemData): string {
   const host = getHostFromWebsite(company.website || undefined);
   // If host is a generic CDN/social host, prefer name slug to avoid collapsing
@@ -35,14 +53,8 @@ function getBaseKey(company: EcosystemData): string {
 }
 
 function getCompanyLogoUrl(company: EcosystemData): string {
-  const hostname = getHostFromWebsite(company.website || undefined);
-  // Canonical local path: always .png
-  if (hostname) return `/logos/${hostname}.png`;
-  // Fallback to sheet-provided
-  if (company.logo_url && company.logo_url.trim()) return company.logo_url.trim();
-  // Fallback to favicon
-  if (hostname) return `https://www.google.com/s2/favicons?domain=${hostname}&sz=32`;
-  return '/favicon.ico';
+  // Always prefer local per-row hashed PNG
+  return `/logos/${deriveRowKey(company)}.png`;
 }
 
 export default function MarketMap({ companies }: MarketMapProps) {
