@@ -7,13 +7,18 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "logos:cache": "node --experimental-modules --no-warnings ./scripts/cache-logos.js"
+    "logos:cache": "node --experimental-modules --no-warnings ./scripts/cache-logos.js",
+    "logos:report": "node ./scripts/report-missing-logos.js",
+    "logos:reconcile": "node ./scripts/reconcile-logos.js",
+    "logos:needs": "node ./scripts/report-needs-sourcing.js",
+    "logos:restore-16": "node ./scripts/restore-specific-logos.js"
   },
   "dependencies": {
     "googleapis": "^155.0.0",
     "next": "15.4.5",
     "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "react-dom": "19.1.0",
+    "sharp": "^0.33.4"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
