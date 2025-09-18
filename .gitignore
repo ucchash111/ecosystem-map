@@ -7,6 +7,13 @@
 # Logo reconciliation archive (keep local, do not commit)
 /public/logos/_archive/
 
+# Temporary scripts
+/scripts/_temp_*.js
+
+# macOS
+.DS_Store
+public/.DS_Store
+
 # Node/npm
 /node_modules/
 npm-debug.log*
