@@ -58,7 +58,7 @@ function getCompanyLogoUrl(company: EcosystemData): string {
 }
 
 export default function MarketMap({ companies }: MarketMapProps) {
-  const [showTierOneOnly, setShowTierOneOnly] = useState(true);
+  const [showTierOneOnly, setShowTierOneOnly] = useState(false);
 
   // Helpers
   const isTierOne = (tier?: string) => {
@@ -74,16 +74,8 @@ export default function MarketMap({ companies }: MarketMapProps) {
       filtered = filtered.filter(company => isTierOne(company.tier));
     }
 
-    // Dedupe by base key (hostname or name slug)
-    const seen = new Set<string>();
-    const unique: EcosystemData[] = [];
-    for (const c of filtered) {
-      const key = getBaseKey(c);
-      if (seen.has(key)) continue;
-      seen.add(key);
-      unique.push(c);
-    }
-    return unique;
+    // Show all rows (no dedupe) to reflect 1:1 sheet rows
+    return filtered;
   };
 
   // Group companies by category

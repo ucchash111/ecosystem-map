@@ -7,6 +7,8 @@
 # Logo reconciliation archive (keep local, do not commit)
 /public/logos/_archive/
 
+# Prevent accidental binary docs in logos
+
 # Temporary scripts
 /scripts/_temp_*.js
 
