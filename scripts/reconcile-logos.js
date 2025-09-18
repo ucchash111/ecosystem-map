@@ -41,6 +41,12 @@ async function getSheetRows(sheetId) {
     .map((row) => {
       const item = {};
       headers.forEach((h, i) => (item[h] = row[i] || ""));
+      // Normalize website to include scheme to keep hashing stable with UI/API logic
+      let website = item.website || item.url || item.link || "";
+      website = String(website || "").trim();
+      if (website && !/^https?:\/\//i.test(website)) {
+        website = `https://${website}`;
+      }
       return {
         name:
           item.name ||
@@ -49,7 +55,7 @@ async function getSheetRows(sheetId) {
           item.company ||
           item.org ||
           "",
-        website: item.website || item.url || item.link || "",
+        website,
         logo_url: item.logo_url || item.logo || "",
       };
     })
@@ -77,8 +83,11 @@ function makeShortHash(input) {
 }
 
 function deriveRowKey(row) {
-  const slug = slugifyName(row.name);
-  const fingerprint = `${row.name}|${row.website}|${row.logo_url}`;
+  const nameTrim = String(row.name || "").trim();
+  const websiteTrim = String(row.website || "").trim();
+  const logoUrlTrim = String(row.logo_url || "").trim();
+  const slug = slugifyName(nameTrim);
+  const fingerprint = `${nameTrim}|${websiteTrim}|${logoUrlTrim}`;
   const short = makeShortHash(fingerprint);
   return `${slug}-${short}`;
 }

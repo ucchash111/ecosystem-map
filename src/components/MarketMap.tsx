@@ -340,8 +340,13 @@ export default function MarketMap({ companies }: MarketMapProps) {
                         .map((company, index) => (
                         <div
                           key={`${company.name}-${index}`}
-                          className="group bg-slate-50 hover:bg-white rounded p-1 cursor-pointer transition-all duration-200 border border-transparent hover:border-slate-300 hover:scale-105"
-                          onClick={() => window.open(company.website, '_blank')}
+                          className={`group bg-slate-50 hover:bg-white rounded p-1 transition-all duration-200 border border-transparent hover:border-slate-300 hover:scale-105 ${
+                            (company.website || '').trim() ? 'cursor-pointer' : 'cursor-default'
+                          }`}
+                          onClick={() => {
+                            const url = (company.website || '').trim();
+                            if (url) window.open(url, '_blank');
+                          }}
                           title={company.name}
                         >
                           <div className="flex flex-col items-center text-center">
@@ -354,35 +359,8 @@ export default function MarketMap({ companies }: MarketMapProps) {
                                 unoptimized
                                 className="w-3.5 h-3.5 object-contain drop-shadow-sm"
                                 onError={(e) => {
-                                  const img = e.currentTarget as HTMLImageElement & { dataset: { attempt?: string } };
-                                  const attempt = parseInt(img.dataset.attempt || '0', 10);
-                                  const hostname = getHostFromWebsite(company.website || undefined);
-                                  // Try canonical PNG only
-                                  if (attempt === 0 && hostname) {
-                                    img.dataset.attempt = '1';
-                                    img.src = `/logos/${hostname}.png`;
-                                    return;
-                                  }
-
-                                  // Next: sheet-provided logo URL
-                                  if (attempt === 1) {
-                                    if (company.logo_url && company.logo_url.trim()) {
-                                      img.dataset.attempt = '2';
-                                      img.src = company.logo_url.trim();
-                                      return;
-                                    } else {
-                                      img.dataset.attempt = '2';
-                                    }
-                                  }
-
-                                  // Next: Google favicon
-                                  if (hostname && attempt <= 2) {
-                                    img.dataset.attempt = '3';
-                                    img.src = `https://www.google.com/s2/favicons?domain=${hostname}&sz=32`;
-                                    return;
-                                  }
-
-                                  // Final fallback: inline placeholder
+                                  const img = e.currentTarget as HTMLImageElement;
+                                  // Local-only policy: if the hashed PNG is missing, show an inline placeholder and do not fetch externally
                                   img.src = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14'><rect width='14' height='14' fill='%23e2e8f0' rx='2'/><text x='7' y='10' text-anchor='middle' fill='%23475569' font-size='6' font-family='General Sans, Arial, sans-serif' font-weight='700'>${company.name.charAt(0).toUpperCase()}</text></svg>`;
                                 }}
                               />
@@ -407,7 +385,7 @@ export default function MarketMap({ companies }: MarketMapProps) {
         {/* Minimal Footer */}
         <div className="mt-3 text-center">
           <p className="text-xs text-slate-400">
-            {filteredCompanies.length} / {companies.filter(c => c.website).length}
+            {filteredCompanies.length} / {companies.length}
           </p>
         </div>
       </div>
